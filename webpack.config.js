@@ -23,10 +23,7 @@ module.exports = {
     //模块：例如解读CSS,图片如何转换，压缩
     module : {
         rules: [
-            // {
-            //     test: /\.css$/,
-            //     use: ['style-loader', 'css-loader']
-            // },
+
             {
                 test: /\.(png|jpg|gif)/,
                 use : [
@@ -39,17 +36,121 @@ module.exports = {
                     }
                 ]
             },
-            {
-                test: /\.css$/, // 分离css路径
-                use : extractTextPlugin.extract({
-                    fallback: "style-loader",
-                    use: "css-loader"
-                })
-            },
+
             {
                 test: /\.(htm|html)$/i,
                 use : ['html-withimg-loader']
+            },
+
+            
+            // 不分离 css 部分
+            {
+                test: /\.css$/,
+                use: [
+                    {
+                        loader: "style-loader"
+                    },
+                    {
+                        loader: "css-loader",
+                        options: {
+                           modules: false,
+                           importLoaders: 1
+                        }
+                    }
+                    ,
+                    {
+                        loader: "postcss-loader"
+                    }
+                ]
+            },
+
+            {
+                test: /.\less$/,
+                use: [
+                    // 不分离 less
+                    {
+                        loader: "style-loader"
+                    },
+                    {
+                        loader : "css-loader"
+                    },
+                    {
+                        loader: "less-loader"
+                    }
+                ]
+            },
+            
+            {
+                test: /\.scss$/,
+                use: [
+                    // 不分离 scss
+                    {
+                        loader : "style-loader"
+                    },
+                    {
+                        loader : "css-loader"
+                    },
+                    {
+                        loader : "sass-loader"
+                    }
+                ]
             }
+            
+
+
+            // 分离css路径
+            /*
+            {
+                test: /\.css$/, 
+                use : extractTextPlugin.extract({
+                    fallback: "style-loader",
+                    use: [
+                        {
+                            loader: "css-loader",
+                            options: {
+                                importLoaders: 1
+                            }
+                        },
+                        'postcss-loader'
+                    ]
+                })
+            },
+            
+           
+           {
+                test: /.\less$/,
+                // 分离 less, 会加到css中
+                use: extractTextPlugin.extract({
+                    use: [
+                        {
+                            loader : "css-loader"
+                        },
+                        {
+                            loader: "less-loader"
+                        }
+                    ],
+                    fallback: "style-loader"
+                })
+            },
+           
+           
+           {
+                test: /\.scss$/,
+                // 分离 sass, 会加到css中
+                use: extractTextPlugin.extract({
+                    use: [
+                        {
+                            loader: "css-loader"
+                        }, 
+                        {
+                            loader: "sass-loader"
+                        }
+                    ],
+                    fallback: "style-loader"
+                })
+           }
+           */
+
         ]
     },
     //插件，用于生产模版和各项功能
