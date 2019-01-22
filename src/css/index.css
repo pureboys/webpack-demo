@@ -16,4 +16,7 @@ body{
     transform: rotate(9deg);
 }
 
+:global(.abc){
+    width: 100px;
+}
 
