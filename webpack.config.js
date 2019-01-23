@@ -2,23 +2,39 @@ const path = require('path');
 const uglify = require('uglifyjs-webpack-plugin');
 const htmlPlugin = require('html-webpack-plugin');
 const extractTextPlugin = require('extract-text-webpack-plugin');
+const glob = require('glob')
+const PurifyCSSPlugin = require('purifycss-webpack')
+const entry = require('./webpack_config/entry_webpack.js')
+const webpack = require('webpack');
 
-var website = {
-    publicPath : 'http://localhost:1717/'
+if (process.env.type == 'build')
+{
+    var website = {
+        publicPath : 'http://localhost',
+        port: '1717',
+        host: 'localhost'
+    }
+}
+else
+{
+    var website = {
+        publicPath : 'http://webpack.demo.com',
+        port: '1717',
+        host: 'webpack.demo.com'
+    }
 }
 
+
+
 module.exports = {
+    devtool: 'eval-source-map',
     //入口文件的配置项
-    entry: {
-        entry:'./src/entry.js',
-        //这里我们又引入了一个入口文件
-        entry2:'./src/entry2.js'
-    },
+    entry: entry.path,
     //出口文件的配置项
     output: {
         path: path.resolve(__dirname, 'dist'), //输出的路径，用了Node语法
         filename:'[name].js',
-        publicPath: website.publicPath
+        publicPath: website.publicPath + ':' + website.port + '/'
     },
     //模块：例如解读CSS,图片如何转换，压缩
     module : {
@@ -42,7 +58,16 @@ module.exports = {
                 use : ['html-withimg-loader']
             },
 
-            
+            {
+                test: /\.(jsx|js)$/,
+                use : {
+                    loader: 'babel-loader'
+                },
+                exclude: /node_modules/
+            },
+
+
+            /*
             // 不分离 css 部分
             {
                 test: /\.css$/,
@@ -95,23 +120,23 @@ module.exports = {
                     }
                 ]
             }
-            
+            */
 
 
             // 分离css路径
-            /*
+            
             {
                 test: /\.css$/, 
                 use : extractTextPlugin.extract({
-                    fallback: "style-loader",
+                    fallback: "style-loader", // 用来处理css文件中的url()等
                     use: [
                         {
-                            loader: "css-loader",
+                            loader: "css-loader", // 它是用来将css插入到页面的style标签
                             options: {
                                 importLoaders: 1
                             }
                         },
-                        'postcss-loader'
+                        'postcss-loader' // 给css加上浏览器加上前缀
                     ]
                 })
             },
@@ -149,13 +174,13 @@ module.exports = {
                     fallback: "style-loader"
                 })
            }
-           */
+           
 
         ]
     },
     //插件，用于生产模版和各项功能
     plugins: [
-        new uglify(),
+       // new uglify(),
         new htmlPlugin({
             minify: {
                 removeAttributeQuotes : true //却掉属性的双引号
@@ -163,17 +188,23 @@ module.exports = {
             hash: true, // 为了开发中js有缓存效果，所以加入hash，这样可以有效避免缓存JS
             template: './src/index.html' //是要打包的html模版路径和文件名称
         }),
-        new extractTextPlugin("css/index.css")
+        new extractTextPlugin("css/index.css"), // 把css分离出来
+        new PurifyCSSPlugin({ // 删除没有用到的css
+            paths: glob.sync(path.join(__dirname, 'src/*.html'))
+        }),
+        // new webpack.ProvidePlugin({
+        //     $: "jquery"
+        // })
     ],
     //配置webpack开发服务功能
     devServer : {
         //设置基本目录结构
         contentBase: path.resolve(__dirname, 'dist'),
         // 服务器的IP地址，可以使用IP也可以使用localhost
-        host: 'localhost',
+        host: website.host,
         //服务端压缩是否开启
         compress: true,
         //配置服务端口号
-        port: 1717
+        port: website.port
     }
 }
