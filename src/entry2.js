@@ -1,1 +1,2 @@
-document.getElementById('title').innerHTML = 'Hello Webpack';
+var json = require('../config.json');
+document.getElementById("json").innerHTML = json.name
